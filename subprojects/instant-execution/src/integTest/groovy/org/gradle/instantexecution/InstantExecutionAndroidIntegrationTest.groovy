@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Unroll
 
 
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
@@ -40,39 +41,48 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         instantExecution = newInstantExecutionFixture()
     }
 
-    def "android 3.6 minimal build assembleDebug --dry-run"() {
+    @Unroll
+    def "android 3.6 minimal build assembleDebug --dry-run (invokedFromIde: #invokedFromIde)"() {
 
         when:
-        instantRun("assembleDebug", "--dry-run")
+        instantRun("assembleDebug", "--dry-run", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        instantRun("assembleDebug", "--dry-run")
+        instantRun("assembleDebug", "--dry-run", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        invokedFromIde << [true, false]
     }
 
-    def "android 3.6 minimal build assembleDebug up-to-date"() {
+    @Unroll
+    def "android 3.6 minimal build assembleDebug up-to-date (invokedFromIde: #invokedFromIde)"() {
         when:
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        invokedFromIde << [true, false]
     }
 
-    def "android 3.6 minimal build clean assembleDebug"() {
+    @Unroll
+    def "android 3.6 minimal build clean assembleDebug (invokedFromIde: #invokedFromIde)"() {
         when:
         executer.expectDeprecationWarning() // Coming from Android plugin
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
         instantExecution.assertStateStored()
@@ -81,9 +91,12 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
         executer.expectDeprecationWarning() // Coming from Android plugin
         run 'clean'
         // Instant execution avoid registering the listener inside Android plugin
-        instantRun("assembleDebug")
+        instantRun("assembleDebug", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
         instantExecution.assertStateLoaded()
+
+        where:
+        invokedFromIde << [true, false]
     }
 }

@@ -32,37 +32,43 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
     }
 
     @Unroll
-    def "assembleDebug --dry-run on Santa Tracker #flavor"() {
+    def "assembleDebug --dry-run on Santa Tracker #flavor (invokedFromIde: #invokedFromIde)"() {
 
         given:
         copyRemoteProject(remoteProject)
         withAgpNightly()
 
         when:
-        instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
+        instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache', "-Pandroid.injected.invoked.from.ide=$invokedFromIde"
 
         then:
-        instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
+        instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache', "-Pandroid.injected.invoked.from.ide=$invokedFromIde"
 
         where:
-        flavor | remoteProject
-        'Java' | "santaTrackerJava"
+        invokedFromIde | flavor | remoteProject
+        false          | 'Java' | "santaTrackerJava"
+        true           | 'Java' | "santaTrackerJava"
         // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Instant execution state could not be cached.
     }
 
-    def "assembleDebug up-to-date on Santa Tracker Java"() {
+    @Unroll
+    def "assembleDebug up-to-date on Santa Tracker Java (invokedFromIde: #invokedFromIde)"() {
         given:
         copyRemoteProject("santaTrackerJava")
         withAgpNightly()
 
         when:
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         then:
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
+
+        where:
+        invokedFromIde << [true, false]
     }
 
-    def "supported tasks clean assembleDebug on Santa Tracker Java"() {
+    @Unroll
+    def "supported tasks clean assembleDebug on Santa Tracker Java (invokedFromIde: #invokedFromIde)"() {
 
         given:
         copyRemoteProject("santaTrackerJava")
@@ -70,7 +76,7 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
 
         when:
         executer.expectDeprecationWarning() // Coming from Android plugin
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
 
         and:
         executer.expectDeprecationWarning() // Coming from Android plugin
@@ -78,6 +84,9 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
 
         then:
         // Instant execution avoid registering the listener inside Android plugin
-        instantRun("assembleDebug", "--no-build-cache")
+        instantRun("assembleDebug", "--no-build-cache", "-Pandroid.injected.invoked.from.ide=$invokedFromIde")
+
+        where:
+        invokedFromIde << [true, false]
     }
 }
