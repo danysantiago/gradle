@@ -38,7 +38,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
     FileAccessTracker fileAccessTracker = Stub(FileAccessTracker)
     String persistentCacheFile = "cacheFile"
 
-    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager, fileAccessTracker)
+    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager, fileAccessTracker, null)
 
     def "storing null artifactFile not supported"() {
         given:
